@@ -9,13 +9,18 @@ ofxKeyboard* key;
 key = ofxKeyboard::get();
 
 // and get button input
-if (key.isPressed('A')) { ofLog() << "pressed a"; }
-if (key.isPushing('A')) { ofLog() << "pushing a"; }
-if (key.isRelease('A')) { ofLog() << "release a"; }
+if (key->isPressed('A')) { ofLog() << "pressed a"; }
+if (key->isPushing('A')) { ofLog() << "pushing a"; }
+if (key->isRelease('A')) { ofLog() << "release a"; }
+
+if (key->anyKey()) { ofLog() << "pressed any key"; }
 
 // another type
 if (ofxKeyboard::get()->isPressed('A')) { ofLog() << "pressed a"; }
 ```
+
+## my another ofxAddon
+[ofxJoystick](https://github.com/Lacty/ofxJoystick) for GamePad.
 
 ## contact
 **@Lost206** -twitter    
