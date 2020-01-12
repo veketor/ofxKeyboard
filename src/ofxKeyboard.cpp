@@ -6,6 +6,7 @@ ofxKeyboard::ofxKeyboard() {
   ofAddListener(ofEvents().update     , this, &ofxKeyboard::flashInput);
   ofAddListener(ofEvents().keyPressed , this, &ofxKeyboard::keyPressed);
   ofAddListener(ofEvents().keyReleased, this, &ofxKeyboard::keyReleased);
+  ofAddListener(ofEvents().exit, this, &ofxKeyboard::clearOnExit);
 }
 
 ofxKeyboard* ofxKeyboard::get() {
@@ -13,24 +14,59 @@ ofxKeyboard* ofxKeyboard::get() {
   return &instance;
 }
 
-void ofxKeyboard::flashInput(ofEventArgs &args) {
-  pressed_.clear();
-  release_.clear();
+void ofxKeyboard::flashInput(ofEventArgs &args)
+{
+	pressed_.clear();
+	release_.clear();
+	//Check keyTimePressed_ map and delete released keys
+	map<int, timeInfo>::const_iterator it = keyTimePressed_.begin();
+	while ( it != keyTimePressed_.end())
+	{
+		if (it->second.released)
+		{
+			it = keyTimePressed_.erase(it);
+		}
+		else
+		{
+			it++;
+		}
+	}
 }
 
-void ofxKeyboard::keyPressed(ofKeyEventArgs &event) {
-  int key = event.keycode;
-  
-  if (pushing_.find(key) == pushing_.end()) {
-    pressed_.insert(key);
-    pushing_.insert(key);
-  }
+
+void ofxKeyboard::clearOnExit(ofEventArgs & args)
+{
+	flushKeys();
+}
+
+void ofxKeyboard::keyPressed(ofKeyEventArgs &event) 
+{
+	int key = event.key;
+
+	if (pushing_.find(key) == pushing_.end()) 
+	{
+		pressed_.insert(key);
+		pushing_.insert(key);
+		timeInfo keyTimeInfo;
+		keyTimeInfo.pressedTime = ofGetElapsedTimeMillis();
+		keyTimeInfo.releasedTime = 0;
+		keyTimeInfo.released = false;
+		keyTimePressed_.insert(std::pair<int, timeInfo>(key, keyTimeInfo));
+	}
 }
 void ofxKeyboard::keyReleased(ofKeyEventArgs &event) {
-  int key = event.keycode;
+  //int key = event.keycode;
+  int key = event.key;
   
   release_.insert(key);
   pushing_.erase(pushing_.find(key));
+  std::map<int, timeInfo>::iterator it = keyTimePressed_.find(key);
+  if (it != keyTimePressed_.end())
+  {
+	  it->second.releasedTime = ofGetElapsedTimeMillis();
+	  it->second.released = true;
+  }
+
 }
 
 bool ofxKeyboard::isPressed(int key) const {
@@ -38,6 +74,16 @@ bool ofxKeyboard::isPressed(int key) const {
     return true;
   }
   return false;
+}
+
+uint64_t ofxKeyboard::getTimePressed(int key)
+{
+	std::map<int, timeInfo>::iterator it = keyTimePressed_.find(key);
+	if (it != keyTimePressed_.end())
+	{
+		return it->second.timePressedMillis();
+	}
+	return false;
 }
 
 bool ofxKeyboard::isPushing(int key) const {
@@ -59,4 +105,12 @@ bool ofxKeyboard::anyKey() const {
     return true;
   }
   return false;
+}
+
+void ofxKeyboard::flushKeys()
+{
+	pressed_.clear();
+	pushing_.clear();
+	release_.clear();
+	keyTimePressed_.clear();
 }
