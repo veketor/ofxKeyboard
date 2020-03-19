@@ -49,5 +49,8 @@ public:
   
   // return true when any pressed
   bool anyKey() const;
+  // return true when any is been pushing
+  bool anyKeyPushing() const;
+  //clear al buffers
   void flushKeys();
 };

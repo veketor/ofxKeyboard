@@ -107,6 +107,14 @@ bool ofxKeyboard::anyKey() const {
   return false;
 }
 
+bool ofxKeyboard::anyKeyPushing() const
+{
+	if (pushing_.size()) {
+		return true;
+	}
+	return false;
+}
+
 void ofxKeyboard::flushKeys()
 {
 	pressed_.clear();
